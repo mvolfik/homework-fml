@@ -13,6 +13,7 @@ psycopg2 = "*"
 gunicorn = "*"
 flask-login = "*"
 passlib = {extras = ["argon2"],version = "*"}
+flask-migrate = "*"
 
 [requires]
 python_version = "3.8"
