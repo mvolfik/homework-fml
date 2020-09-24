@@ -8,4 +8,4 @@ migrate = Migrate()
 class User(db.Model):
     __tablename__ = "users"
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.Integer, unique=True, nullable=False)
+    email = db.Column(db.String, unique=True, nullable=False)
