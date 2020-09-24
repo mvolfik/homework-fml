@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Homework – FML{% endblock %}</title>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/material-components-web@7/dist/material-components-web.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/material-components-web@7/dist/material-components-web.min.js"></script>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap"
+          rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for("static", filename="main.css") }}"/>
+    {% block head %}
+    {% endblock %}
+</head>
+<body>
+<header class="mdc-top-app-bar mdc-top-app-bar--fixed mdc-top-app-bar--dense">
+    <div class="mdc-top-app-bar__row">
+        <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-start">
+            <button class="material-icons mdc-top-app-bar__navigation-icon mdc-icon-button"
+                    aria-label="Open navigation menu">menu
+            </button>
+            <span class="mdc-top-app-bar__title">Homework – Fully Merged List</span>
+        </section>
+        <section class="mdc-top-app-bar__section mdc-top-app-bar__section--align-end">
+            <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
+                    aria-label="Search">search
+            </button>
+            <button class="material-icons mdc-top-app-bar__action-item mdc-icon-button"
+                    aria-label="Options">more_vert
+            </button>
+        </section>
+    </div>
+</header>
+<main class="mdc-top-app-bar--dense-fixed-adjust">
+    {% block body %}
+    {% endblock %}
+</main>
+<button class="mdc-fab mdc-fab--extended">
+    <div class="mdc-fab__ripple"></div>
+    <span class="material-icons mdc-fab__icon">add</span>
+    <span class="mdc-fab__label">Add Task</span>
+</button>
+<div class="mdc-snackbar mdc-snackbar--leading">
+    <div class="mdc-snackbar__surface">
+        <div class="mdc-snackbar__label"
+             role="status"
+             aria-live="polite">
+            Snackbar message will be here
+        </div>
+        <div class="mdc-snackbar__actions">
+            <button type="button" class="mdc-button mdc-snackbar__action">
+                <div class="mdc-button__ripple"></div>
+                <span class="mdc-button__label">Snackbar Action</span>
+            </button>
+        </div>
+    </div>
+</div>
+{% block end %}
+{% endblock %}
+<script type="text/javascript">
+    const topAppBar = new mdc.topAppBar.MDCTopAppBar(document.querySelector('.mdc-top-app-bar'));
+    const fabRipple = new mdc.ripple.MDCRipple(document.querySelector('.mdc-fab'));
+    const snackbar = new mdc.snackbar.MDCSnackbar(document.querySelector('.mdc-snackbar'));
+    let snackbar_queue = [];
+    snackbar.actionButtonText = "";
+
+    function give_snack(text, action = "") {
+        if (snackbar.isOpen) {
+            snackbar_queue.push({text: text, action: action});
+        } else {
+            snackbar.labelText = text;
+            snackbar.actionButtonText = action;
+            snackbar.open();
+        }
+
+    }
+</script>
+</body>
+</html>

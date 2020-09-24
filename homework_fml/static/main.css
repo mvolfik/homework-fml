@@ -1,0 +1,35 @@
+html, body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    --mdc-theme-primary: #8bc34a;
+    --mdc-theme-secondary: #0d46a0;
+}
+
+.mdc-fab {
+    bottom: 20px;
+    right: 20px;
+    position: fixed;
+}
+
+main {
+    margin-left: 1em;
+}
+
+.mdc-card {
+    width: 20em;
+}
+
+.mdc-card > :first-child {
+    padding: 16px;
+}
+
+.mdc-card * {
+    max-height: max-content;
+}
+
+.mdc-card__actions--buttons-right {
+    justify-content: end;
+}
