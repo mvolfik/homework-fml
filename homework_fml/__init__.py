@@ -6,6 +6,8 @@ from flask_wtf.csrf import CSRFProtect
 
 
 def create_app():
+    from . import sentry
+
     app = Flask(__name__)
 
     # region config
