@@ -12,10 +12,11 @@ flask-sqlalchemy = "*"
 psycopg2 = "*"
 gunicorn = "*"
 flask-login = "*"
-passlib = {extras = ["argon2"],version = "*"}
+passlib = { extras = ["argon2"], version = "*" }
 flask-migrate = "*"
 sqlalchemy-citext = "*"
 dkimpy = "*"
+flask-wtf = "*"
 
 [requires]
 python_version = "3.8"

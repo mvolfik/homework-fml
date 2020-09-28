@@ -1,0 +1,84 @@
+{% extends "_base.html" %}
+{% block body %}
+    <form action="{{ url_for("api.register") }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <p>
+            <label for="email">Email:</label>
+            <input id="email" type="email" name="email" required="required"
+                   autofocus="autofocus"
+                   placeholder="username@example.com"/>
+        </p>
+        <p>
+            <label for="pwd">Password:</label>
+            <input id="pwd" type="password" name="pwd" required="required"/>
+        </p>
+        <p>
+            <label for="confirmpwd">Confirm password:</label>
+            <input id="confirmpwd" type="password" name="confirmpwd"
+                   required="required"/>
+        </p>
+        <input type="submit" id="submit"/>
+    </form>
+{% endblock %}
+{% block end %}
+    <script type="text/javascript">
+        const pwdinput = $("#pwd");
+        const pwdconfirminput = $("#confirmpwd");
+
+        function validate_password() {
+            if (pwdinput.val().length < 8) {
+                if (pwdinput.val().length === 0) {
+                    pwdinput[0].setCustomValidity("Please create a password")
+                }
+                pwdinput[0].setCustomValidity("Password should be at least 8 characters long. (Can't remember it? Time to start using a password manager!)")
+            } else {
+                pwdinput[0].setCustomValidity("")
+            }
+        }
+
+        function validate_confirmation() {
+            if (pwdconfirminput.val() !== pwdinput.val()) {
+                pwdconfirminput[0].setCustomValidity("Passwords don't match")
+            } else {
+                pwdconfirminput[0].setCustomValidity("")
+            }
+        }
+
+        pwdinput.on("input", validate_password);
+        pwdconfirminput.on("input", validate_confirmation);
+        const form = $("form");
+        const send_button = form.find("input[type=submit]");
+        form.on("submit", function (e) {
+            validate_confirmation();
+            validate_password();
+
+            e.preventDefault();
+            send_button.prop("disabled", true);
+            $.post("{{ url_for("api.register") }}", form.serialize(), function (data) {
+                if (data.ok) {
+                    alert("Your account has been created. Please open your inbox and confirm your email");
+                    window.location.href = "{{ url_for("user.login") }}";
+                } else {
+                    switch (data.reason) {
+                        case "{{ ErrorReason.EMAIL_ALREADY_REGISTERED }}": {
+                            alert("This email is already registered. Perhaps you want to log in?");
+                            break;
+                        }
+                        case "{{ ErrorReason.PASSWORDS_DIFFER }}": {
+                            alert("Password confirmation doesn't match");
+                            break;
+                        }
+                        case "{{ ErrorReason.PASSWORD_TOO_SHORT }}": {
+                            alert("The password is too short");
+                            break;
+                        }
+                        default: {
+                            alert("An error occured. Please try again.");
+                        }
+                    }
+                    send_button.prop("disabled", false);
+                }
+            })
+        });
+    </script>
+{% endblock %}

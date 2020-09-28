@@ -5,14 +5,14 @@ Revises: 24cac34be491
 Create Date: 2020-09-24 18:14:31.508085
 
 """
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from citext import CIText
 
 # revision identifiers, used by Alembic.
 
-revision = '4855191efa70'
-down_revision = '24cac34be491'
+revision = "4855191efa70"
+down_revision = "24cac34be491"
 branch_labels = None
 depends_on = None
 

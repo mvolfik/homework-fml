@@ -1,0 +1,68 @@
+{% extends "_base.html" %}
+{% block body %}
+    <form action="{{ url_for("api.login") }}" method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <p>
+            <label for="email">Email:</label>
+            <input id="email" type="email" name="email" required="required"
+                   autofocus="autofocus"
+                   placeholder="username@example.com"/>
+        </p>
+        <p>
+            <label for="pwd">Password:</label>
+            <input id="pwd" type="password" name="pwd" required="required"/>
+        </p>
+        <input type="submit" id="submit"/>
+    </form>
+{% endblock %}
+{% block end %}
+    <script type="text/javascript">
+        const form = $("form");
+        const send_button = form.find("input[type=submit]");
+        const email_field = form.find("#email");
+        const pwd_field = form.find("#pwd");
+
+        function resend_email() {
+            $.post("{{ url_for("api.resend_email") }}", {
+                csrf_token: csrf_token,
+                email: email_field.val()
+            }, function (data) {
+                if (data.ok) {
+                    alert("Email was succesfully sent.")
+                } else {
+                    if (confirm("Something went wrong. Should we try again?")) {
+                        resend_email();
+                    }
+                }
+            })
+        }
+
+        form.on("submit", function (e) {
+            e.preventDefault();
+            send_button.prop("disabled", true);
+            $.post("{{ url_for("api.login") }}", form.serialize(), function (data) {
+                if (data.ok) {
+                    window.location.href = "{{ url_for("homepage") }}";
+                } else {
+                    switch (data.reason) {
+                        case "{{ ErrorReason.WRONG_LOGIN }}": {
+                            alert("Invalid email or password. Perhaps you want to register?");
+                            break;
+                        }
+                        case "{{ ErrorReason.ACCOUNT_NOT_ACTIVE }}": {
+                            if (confirm("This account doesn't have verified email. Do you want us to send you the verification email again? (The previous tokens will be invalidated.)")) {
+                                resend_email();
+                            }
+                            break;
+                        }
+                        default: {
+                            alert("An error occured. Please try again.");
+                        }
+                    }
+                    send_button.prop("disabled", false);
+                    pwd_field.val("")
+                }
+            })
+        });
+    </script>
+{% endblock %}

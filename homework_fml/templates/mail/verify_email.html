@@ -1,0 +1,13 @@
+{% extends "mail/_base_mail.html" %}
+{% block body %}
+    <p>Hello,</p>
+    <p>Somebody (most likely you) just registered an account on homework-f.ml with this
+        email address. In order to verify it, please open the following URL address in
+        your
+        browser:</p>
+    <p style="font-size: 0.85em;"><a href="{{ token }}">{{ token }}</a></p>
+    <p>In case it wasn't you, you don't need to take any action. The account is unusable
+        without a verified email address.</p>
+    <p>Best regards,<br/>
+        Matěj from Homework – Fully Merged List</p>
+{% endblock %}
