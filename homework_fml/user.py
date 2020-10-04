@@ -1,4 +1,5 @@
 from flask import Blueprint, flash, redirect, render_template, url_for
+from flask_login import current_user
 
 from .db import User, db
 
@@ -10,11 +11,15 @@ bp = Blueprint("user", __name__, url_prefix="/user")
 
 @bp.route("/register")
 def register():
+    if current_user.is_authenticated:
+        return redirect(url_for("homepage"))
     return render_template("register.html")
 
 
 @bp.route("/login")
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for("homepage"))
     return render_template("login.html")
 
 
