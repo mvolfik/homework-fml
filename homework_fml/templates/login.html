@@ -12,15 +12,17 @@
             <label for="pwd">Password:</label>
             <input id="pwd" type="password" name="pwd" required="required"/>
         </p>
-        <input type="submit" id="submit"/>
+        <button type="submit" id="submit">Log in</button>
     </form>
+    <button type="button" id="reset_password">Reset password</button>
 {% endblock %}
 {% block end %}
     <script type="text/javascript">
         const form = $("form");
-        const send_button = form.find("input[type=submit]");
+        const send_button = form.find("button[type=submit]");
         const email_field = form.find("#email");
         const pwd_field = form.find("#pwd");
+        const reset_pwd_button = $("#reset_password");
 
         function resend_email() {
             $.post("{{ url_for("api.resend_email") }}", {
@@ -50,7 +52,9 @@
                             break;
                         }
                         case "{{ ErrorReason.ACCOUNT_NOT_ACTIVE }}": {
-                            if (confirm("This account doesn't have verified email. Do you want us to send you the verification email again? (The previous tokens will be invalidated.)")) {
+                            if (confirm("This account doesn't have verified email. Do " +
+                                "you want us to send you the verification email again? " +
+                                "(The previous tokens will be invalidated.)")) {
                                 resend_email();
                             }
                             break;
@@ -63,6 +67,26 @@
                     pwd_field.val("")
                 }
             })
+        });
+
+        reset_pwd_button.on("click", function () {
+            if (email_field.val()) {
+                reset_pwd_button.prop("disabled", true);
+                $.post("{{ url_for("api.request_password_reset") }}", {
+                    email: email_field.val(),
+                    csrf_token: csrf_token
+                }, function (data) {
+                    if (data.ok) {
+                        alert("If there is an account registered with this email " +
+                            "address, we have sent it an email with a link to reset its password");
+                    } else {
+                        alert("Something went wrong.");
+                    }
+                    reset_pwd_button.prop("disabled", false);
+                })
+            } else {
+                alert("Please fill an email address in the form above");
+            }
         });
     </script>
 {% endblock %}

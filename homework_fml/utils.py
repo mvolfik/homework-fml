@@ -14,3 +14,5 @@ class ErrorReason(str, Enum):
     PASSWORDS_DIFFER = auto()
     WRONG_LOGIN = auto()
     ACCOUNT_NOT_ACTIVE = auto()
+    TOKEN_EXPIRED = auto()
+    TOKEN_INVALID = auto()

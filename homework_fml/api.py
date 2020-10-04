@@ -1,10 +1,12 @@
 import secrets
+from datetime import datetime
 
 from flask import Blueprint, flash, jsonify, render_template, request, url_for
 from flask_login import LoginManager, login_user, logout_user
 from passlib.context import CryptContext
+from sqlalchemy.orm import joinedload
 
-from .db import User, db
+from .db import PasswordResetToken, User, db
 from .email import send_mail
 from .utils import ErrorReason
 
@@ -23,18 +25,22 @@ def load_user(user_id):
     return User.query.get(user_id)
 
 
+def fail(r: ErrorReason):
+    return jsonify({"ok": False, "reason": r})
+
+
 # endregion
 # region errors
 
 
 @bp.errorhandler(500)
 def error(e):
-    return jsonify({"ok": False, "reason": "EXCEPTION"})
+    return fail(ErrorReason.EXCEPTION)
 
 
 @bp.errorhandler(400)
 def bad_request(e):
-    return jsonify({"ok": False, "reason": "EXCEPTION"})
+    return fail(ErrorReason.EXCEPTION)
 
 
 # endregion
@@ -44,11 +50,11 @@ def bad_request(e):
 def register():
     data = request.form
     if len(data["pwd"]) < 8:
-        return jsonify({"ok": False, "reason": ErrorReason.PASSWORD_TOO_SHORT})
+        return fail(ErrorReason.PASSWORD_TOO_SHORT)
     elif data["pwd"] != data["confirmpwd"]:
-        return jsonify({"ok": False, "reason": ErrorReason.PASSWORDS_DIFFER})
+        return fail(ErrorReason.PASSWORDS_DIFFER)
     elif db.session.query(User.query.filter_by(email=data["email"]).exists()).scalar():
-        return jsonify({"ok": False, "reason": ErrorReason.EMAIL_ALREADY_REGISTERED})
+        return fail(ErrorReason.EMAIL_ALREADY_REGISTERED)
     else:
         email_verification_token = secrets.token_hex(64)
         # noinspection PyArgumentList
@@ -85,27 +91,28 @@ def login():
     data = request.form
     u = User.query.filter_by(email=data["email"]).one_or_none()
     if u is None:
-        return jsonify({"ok": False, "reason": ErrorReason.WRONG_LOGIN})
-    elif u.email_verification_token is not None:
-        return jsonify({"ok": False, "reason": ErrorReason.ACCOUNT_NOT_ACTIVE})
+        return fail(ErrorReason.WRONG_LOGIN)
 
     valid, new_hash = cryptctx.verify_and_update(data["pwd"], u.hash)
     if not valid:
-        return jsonify({"ok": False, "reason": ErrorReason.WRONG_LOGIN})
+        return fail(ErrorReason.WRONG_LOGIN)
 
-    else:
-        login_user(u)
-        if new_hash:
-            u.hash = new_hash
-            db.session.commit()
-        return jsonify({"ok": True})
+    if u.email_verification_token is not None:
+        return fail(ErrorReason.ACCOUNT_NOT_ACTIVE)
+
+    login_user(u)
+    if new_hash:
+        u.hash = new_hash
+        db.session.commit()
+    return jsonify({"ok": True})
 
 
 @bp.route("/resend-email", methods=("POST",))
 def resend_email():
     u = User.query.filter_by(email=request.form["email"]).one_or_none()
     if u is None or u.email_verification_token is None:
-        return jsonify({"ok": False, "reason": ErrorReason.EXCEPTION})
+        return fail(ErrorReason.EXCEPTION)
+
     email_verification_token = secrets.token_hex(64)
     u.email_verification_token = email_verification_token
     db.session.commit()
@@ -116,9 +123,9 @@ def resend_email():
         u.email,
         "Email verification",
         "Hello,\n"
-        "Somebody (most likely you) just registered an account on homework-f.ml with this email address. In order to verify it, please open the following URL address in your browser:\n"
+        "Somebody (most likely you) just registered an account on homework-f.ml with this email address. In order to verify it, please open the following URL address in your browser:\n\n"
         + token_url
-        + "\n"
+        + "\n\n"
         "In case it wasn't you, you don't need to take any action. The account is unusable without a verified email address.\n\n"
         "Best regards,\n"
         "Matěj from Homework – Fully Merged List",
@@ -133,4 +140,55 @@ def resend_email():
 def logout():
     logout_user()
     flash("You have been successfully logged out")
+    return jsonify({"ok": True})
+
+
+@bp.route("/request-password-reset", methods=("POST",))
+def request_password_reset():
+    user = User.query.filter_by(email=request.form["email"]).one_or_none()
+    if user is None:
+        return jsonify({"ok": True})
+
+    token = secrets.token_hex(64)
+    token_url = url_for("user.reset_password", reset_token=token, _external=True)
+    send_mail(
+        user.email,
+        "Password reset",
+        "Hello,\n"
+        "Somebody (most likely you) just requested password reset for account on homework-f.ml with this email address. If it was you, click the following link to set your new password:\n\n"
+        + token_url
+        + "\n\n"
+        "In case it wasn't you, you don't need to take any action. Your password and account are safe.\n\n"
+        "Best regards,\n"
+        "Matěj from Homework – Fully Merged List",
+        render_template(
+            "mail/reset_password.html", title="Reset your password", token=token_url
+        ),
+    )
+    token_object = PasswordResetToken(token=token)
+    user.password_reset_tokens.append(token_object)
+    db.session.commit()
+    return jsonify({"ok": True})
+
+
+@bp.route("/reset-password", methods=("POST",))
+def reset_password():
+    data = request.form
+    token_object = PasswordResetToken.query.options(
+        joinedload(PasswordResetToken.user)
+    ).get(data["reset_token"])
+    if token_object is None:
+        return fail(ErrorReason.TOKEN_INVALID)
+    if datetime.utcnow() > token_object.expires:
+        return fail(ErrorReason.TOKEN_EXPIRED)
+
+    if len(data["pwd"]) < 8:
+        return fail(ErrorReason.PASSWORD_TOO_SHORT)
+    if data["pwd"] != data["confirmpwd"]:
+        return fail(ErrorReason.PASSWORDS_DIFFER)
+
+    token_object.user.hash = cryptctx.hash(data["pwd"])
+    db.session.delete(token_object)
+    db.session.commit()
+
     return jsonify({"ok": True})
