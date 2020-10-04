@@ -13,7 +13,7 @@ if dsn is not None:
             user_info = event.setdefault("user", {})
             if current_user.is_authenticated:
                 user_info["id"] = current_user.id
-                user_info["url"] = current_user.email
+                user_info["email"] = current_user.email
             else:
                 user_info["ip_address"] = request.remote_addr
         except Exception:  # noqa
