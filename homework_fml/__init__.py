@@ -1,6 +1,6 @@
 import os
 
-from flask import Flask, render_template
+from flask import Flask, redirect, render_template, url_for
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
 
@@ -54,13 +54,17 @@ def create_app():
     migrate.init_app(app, db)
 
     # endregion
-    # region homepage
+    # region views
 
     @app.route("/")
     def homepage():
         return render_template(
             "main.html" if current_user.is_authenticated else "welcome.html"
         )
+
+    @app.route("/favicon.ico")
+    def favicon():
+        return redirect(url_for("static", filename="favicon.ico"))
 
     # endregion
 
