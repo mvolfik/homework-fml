@@ -16,12 +16,23 @@ def create_app():
         {
             "SQLALCHEMY_DATABASE_URI": os.environ["DATABASE_URL"],
             "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+            "MONGODB_URI": os.environ["MONGODB_URI"],
+            "MONGODB_DBNAME": os.environ["MONGODB_DBNAME"],
             "SECRET_KEY": os.environ["SECRET_KEY"],
             "REMEMBER_COOKIE_SECURE": True,
             "WTF_CSRF_TIME_LIMIT": 86400,  # 24 hours
         }
     )
     CSRFProtect(app)
+
+    # endregion
+    # region db
+
+    from .db import init_app
+
+    # BEWARE: it is important that this is run before importing any blueprints
+    # that import mongo, mongodb, tasks
+    init_app(app)
 
     # endregion
     # region utils
@@ -44,14 +55,6 @@ def create_app():
 
     app.register_blueprint(api_bp)
     login_manager.init_app(app)
-
-    # endregion
-    # region db
-
-    from .db import db, migrate
-
-    db.init_app(app)
-    migrate.init_app(app, db)
 
     # endregion
     # region views

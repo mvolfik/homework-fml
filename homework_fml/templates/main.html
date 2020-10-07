@@ -1,4 +1,133 @@
 {% extends "_base.html" %}
 {% block body %}
-    <p>You are now logged in. The Merged List will appear here</p>
+    <button onclick="add_task()">Add task</button>
+    <div id="main-list" style="white-space: pre-wrap">
+        Tasks are loading, please wait...
+    </div>
+{% endblock %}
+{% block end %}
+    <div class="modal-wrapper" id="add-task-modal">
+        <div>
+            <span class="modal-close">&times;</span>
+            <form action="{{ url_for("api.add_manual_task") }}" method="post">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <p>
+                    <label for="title">Title</label>:
+                    <input type="text" name="title" id="title" required="required"/>
+                </p>
+                <p>
+                    <label for="due-date">Due</label>
+                    <input type="date" name="due-date" id="due-date"
+                           required="required"/>
+                    <label for="due-time">at</label>
+                    <input type="time" name="due-time" id="due-time"
+                           required="required" value="23:59"/>
+                </p>
+                <p>
+                    <label for="description">Description</label>:
+                    <textarea name="description" id="description"></textarea>
+                </p>
+                <p>
+                    <button id="add-task" type="submit">Add task</button>
+                </p>
+            </form>
+        </div>
+    </div>
+    <script type="text/javascript">
+        main_list = $("#main-list");
+
+        function load_tasks() {
+            $.get("{{ url_for("api.get_tasks") }}", function (data) {
+                if (!data.ok) {
+                    if (confirm("Tasks loading failed. Try again?")) {
+                        load_tasks();
+                    }
+                } else {
+                    main_list.text(JSON.stringify(data.tasks, null, 2));
+                }
+            });
+        }
+
+        load_tasks();
+
+        // region add manual task
+        const form = $("form");
+        const send_button = $("#add-task");
+        const date_input = $("#due-date");
+        const time_input = $("#due-time");
+        const title_input = $("#title");
+        const description_input = $("#description");
+        const modal_wrapper = $("#add-task-modal");
+        const modal_cross = $(".modal-close");
+
+        function add_task() {
+            modal_cross.show();
+            modal_wrapper.show();
+        }
+
+        let tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        // bruh, js dates are the weirdest thing I've ever seen
+        date_input.val(`${tomorrow.getFullYear()}-${(tomorrow.getMonth() + 1).toString().padStart(2, "0")}-${tomorrow.getDate().toString().padStart(2, "0")}`);
+
+        send_button.on("click", function (e) {
+            e.preventDefault();
+
+            // check that datetime is in the future
+            if (date_input.val() === "") {
+                date_input[0].setCustomValidity("Please fill a due date");
+                return;
+            }
+            if (time_input.val() === "") {
+                time_input[0].setCustomValidity("Please fill a due time");
+                return;
+            }
+            const datetime = new Date(date_input.val() + " " + time_input.val());
+            if (datetime <= (new Date())) {
+                date_input[0].setCustomValidity("The due date and time can't be in the past");
+                return;
+            }
+            send_button.prop("disabled", true);
+            modal_cross.hide();
+            $.post("{{ url_for("api.add_manual_task") }}", {
+                csrf_token: csrf_token,
+                title: title_input.val(),
+                description: description_input.val(),
+                due_timestamp: datetime.getTime() / 1000
+            }, function (data) {
+                if (data.ok) {
+                    modal_wrapper.hide();
+
+                    // reset fields
+                    time_input.val("23:59");
+                    let tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    date_input.val(`${tomorrow.getFullYear()}-${(tomorrow.getMonth() + 1).toString().padStart(2, "0")}-${tomorrow.getDate().toString().padStart(2, "0")}`);
+                    title_input.val("");
+                    description_input.val("");
+                    if (confirm("Task added successfully. Reload data?")) {
+                        load_tasks();
+                    }
+                } else {
+                    if (data.reason === "{{ ErrorReason.DUE_IN_PAST }}") {
+                        alert("The due date and time can't be in the past!");
+                    } else {
+                        alert("Something went wrong, please try again")
+                    }
+                }
+                send_button.prop("disabled", false);
+                modal_cross.show();
+            })
+        });
+        modal_wrapper.hide();
+        modal_cross.on("click", function () {
+            modal_wrapper.hide();
+        });
+        $(window).on("click", function (e) {
+            if (modal_wrapper.is(e.target) && !modal_cross.is(":hidden")) {
+                modal_wrapper.hide();
+            }
+        })
+        // endregion
+    </script>
 {% endblock %}

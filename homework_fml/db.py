@@ -1,13 +1,34 @@
 import secrets
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
+from bson import CodecOptions
 from citext import CIText
 from flask_login import UserMixin
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
+from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.database import Database
 
-db = SQLAlchemy()
+db = SQLAlchemy(engine_options={"connect_args": {"options": "-c timezone=utc"}})
 migrate = Migrate()
+
+mongo: MongoClient = None
+mongodb: Database = None
+tasks: Collection = None
+
+
+def init_app(app):
+    global db, migrate, mongo, mongodb, tasks
+
+    db.init_app(app)
+    migrate.init_app(app)
+
+    mongo = MongoClient(app.config["MONGODB_URI"])
+    mongodb = mongo[app.config["MONGODB_DBNAME"]]
+    tasks = mongodb.get_collection(
+        "tasks", codec_options=CodecOptions(tz_aware=True, tzinfo=timezone.utc)
+    )
 
 
 class User(UserMixin, db.Model):
@@ -28,7 +49,7 @@ class PasswordResetToken(db.Model):
     expires = db.Column(
         db.DateTime,
         nullable=False,
-        default=lambda: datetime.utcnow() + timedelta(hours=12),
+        default=lambda: datetime.now(tz=timezone.utc) + timedelta(hours=12),
     )
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     user = db.relationship(User, backref="password_reset_tokens")

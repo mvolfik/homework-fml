@@ -16,3 +16,4 @@ class ErrorReason(str, Enum):
     ACCOUNT_NOT_ACTIVE = auto()
     TOKEN_EXPIRED = auto()
     TOKEN_INVALID = auto()
+    DUE_IN_PAST = auto()

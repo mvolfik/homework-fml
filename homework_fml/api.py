@@ -1,22 +1,26 @@
 import secrets
-from datetime import datetime
+from datetime import datetime, timezone
 
+from bson import ObjectId
 from flask import Blueprint, flash, jsonify, render_template, request, url_for
-from flask_login import LoginManager, login_user, logout_user
+from flask.json import JSONEncoder
+from flask_login import LoginManager, current_user, login_user, logout_user
 from passlib.context import CryptContext
 from sqlalchemy.orm import joinedload
 
-from .db import PasswordResetToken, User, db
+from .db import PasswordResetToken, User, db, tasks
 from .email import send_mail
 from .utils import ErrorReason
 
-bp = Blueprint("api", __name__, url_prefix="/api")
-
 # region setup
 
+bp = Blueprint("api", __name__, url_prefix="/api")
 cryptctx = CryptContext(schemes=["argon2"])
-
 login_manager = LoginManager()
+
+# endregion
+# region flask-login
+
 login_manager.login_view = "user.login"
 
 
@@ -25,12 +29,29 @@ def load_user(user_id):
     return User.query.get(user_id)
 
 
-def fail(r: ErrorReason):
-    return jsonify({"ok": False, "reason": r})
+# endregion
+# region json encoder
+
+
+class CustomJSONEncoder(JSONEncoder):
+    def default(self, o):
+        if isinstance(o, ObjectId):
+            return str(o)
+        elif isinstance(o, datetime):
+            return o.timestamp()
+        else:
+            return super().default(o)
+
+
+bp.json_encoder = CustomJSONEncoder
 
 
 # endregion
 # region errors
+
+
+def fail(r: ErrorReason):
+    return jsonify({"ok": False, "reason": r})
 
 
 @bp.errorhandler(500)
@@ -192,3 +213,29 @@ def reset_password():
     db.session.commit()
 
     return jsonify({"ok": True})
+
+
+@bp.route("/add-manual-task", methods=("POST",))
+def add_manual_task():
+    data = request.form
+    due = datetime.fromtimestamp(int(data["due_timestamp"]), tz=timezone.utc)
+    if due <= datetime.now(tz=timezone.utc):
+        return fail(ErrorReason.DUE_IN_PAST)
+
+    tasks.insert_one(
+        {
+            "_provider": "manual",
+            "user_id": current_user.id,
+            "title": data["title"],
+            "due": due,
+            "description": data["description"],
+        }
+    )
+    return jsonify({"ok": True})
+
+
+@bp.route("/get-tasks", methods=("GET",))
+def get_tasks():
+    return jsonify(
+        {"ok": True, "tasks": list(tasks.find({"user_id": current_user.id}))}
+    )
