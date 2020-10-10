@@ -22,7 +22,7 @@ def init_app(app):
     global db, migrate, mongo, mongodb, tasks
 
     db.init_app(app)
-    migrate.init_app(app)
+    migrate.init_app(app, db)
 
     mongo = MongoClient(app.config["MONGODB_URI"])
     mongodb = mongo[app.config["MONGODB_DBNAME"]]
