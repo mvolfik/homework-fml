@@ -217,6 +217,9 @@ def reset_password():
 
 @bp.route("/add-manual-task", methods=("POST",))
 def add_manual_task():
+    if not current_user.is_authenticated:
+        return fail(ErrorReason.UNAUTHORIZED)
+
     data = request.form
     due = datetime.fromtimestamp(int(data["due_timestamp"]), tz=timezone.utc)
     if due <= datetime.now(tz=timezone.utc):
@@ -236,6 +239,9 @@ def add_manual_task():
 
 @bp.route("/get-tasks", methods=("GET",))
 def get_tasks():
+    if not current_user.is_authenticated:
+        return fail(ErrorReason.UNAUTHORIZED)
+
     return jsonify(
         {"ok": True, "tasks": list(tasks.find({"user_id": current_user.id}))}
     )

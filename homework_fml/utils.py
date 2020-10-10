@@ -17,3 +17,4 @@ class ErrorReason(str, Enum):
     TOKEN_EXPIRED = auto()
     TOKEN_INVALID = auto()
     DUE_IN_PAST = auto()
+    UNAUTHORIZED = auto()
