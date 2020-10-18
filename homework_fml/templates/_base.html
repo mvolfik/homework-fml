@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>{% block title %}Homework – FML{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for("static", filename="main.css") }}"/>
     <link rel="icon" type="image/png" sizes="32x32"
@@ -9,6 +10,8 @@
     <link rel="icon" type="image/png" sizes="16x16"
           href="{{ url_for("static", filename="favicon-16x16.png") }}">
     <link rel="shortcut icon" href="{{ url_for("static", filename="favicon.ico") }}">
+    <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&amp;family=Roboto&amp;family=Roboto+Slab:wght@300&amp;display=swap"
+          rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/jquery@3/dist/jquery.min.js"
             type="text/javascript"></script>
     {% block head %}
@@ -16,19 +19,44 @@
 </head>
 <body>
 <header>
-    <a href="{{ url_for("homepage") }}">Homework – Fully Merged List</a>
-    | More stuff might be added here
-    {% if current_user.is_authenticated %}
-        | <a onclick="log_out()">Log out</a>
-    {% else %}
-        | <a href="{{ url_for("user.login") }}">Log in</a>
-        | <a href="{{ url_for("user.register") }}">Register</a>
-    {% endif %}
+    <div id="header-left">
+        {% if current_user.is_authenticated %}
+            <a href="{{ url_for("service_menu") }}">Manage services</a>
+        {% endif %}
+    </div>
+    <a id="header-center" href="{{ url_for("homepage") }}">
+        <img src="{{ url_for("static", filename="logo.svg") }}" alt="logo"/>
+        <span>Homework – Fully Merged List</span>
+    </a>
+    <div id="header-right">
+        {% if current_user.is_authenticated %}
+            <span>{{ current_user.email }}</span>
+            <a onclick="log_out()">Log out</a>
+        {% else %}
+            <a href="{{ url_for("user.login") }}">Log in</a>
+            <a href="{{ url_for("user.register") }}">Register</a>
+        {% endif %}
+    </div>
 </header>
 <main>
     {% block body %}
     {% endblock %}
 </main>
+<footer>
+    Copyright &copy; 2020 <a href="https://github.com/mvolfik" target="_blank">Matěj
+    Volf</a>
+    | <a href="https://github.com/mvolfik/homework-fml" target="_blank">View source on
+    GitHub</a>
+    | <a href="https://github.com/mvolfik/homework-fml/issues/new" target="_blank">Report
+    an issue</a>
+    | <a href="{{ url_for("static", filename="privacy-policy.html") }}" target="_blank">Privacy
+    Policy</a>
+    | <a href="{{ url_for("static", filename="ToS.html") }}" target="_blank">Terms of
+    Service</a>
+    | <a href="https://mailhide.io/e/a9rVH"
+         onclick="mailhidepopup=window.open('https://mailhide.io/e/a9rVH','mailhidepopup','width=580,height=635'); return false;">Email
+    contact</a>
+</footer>
 <script type="text/javascript">
     const csrf_token = "{{ csrf_token() }}";
     $(function () {

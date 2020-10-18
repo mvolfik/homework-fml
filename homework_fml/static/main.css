@@ -1,3 +1,182 @@
+/* palette: http://paletton.com/#uid=23F0u0k++x1ojKpUDYY++ob++fA */
+
+html, body {
+    width: 100%;
+    color: #000;
+    margin: 0;
+    padding: 0;
+    font-family: 'Roboto Slab', serif;
+    font-weight: 300;
+}
+
+h1, h2, h3, h4 {
+    font-family: 'Open Sans', sans-serif;
+}
+
+main {
+    padding: 1em 2em;
+    max-width: 60em;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+a {
+    text-decoration: #333 solid underline;
+    color: #002152;
+}
+
+.emph {
+    font-family: Roboto, sans-serif;
+    font-weight: 400;
+}
+
+footer {
+    border-top: 1px solid #555;
+    padding: 0.5em;
+    font-size: 0.95em;
+    color: #222;
+    text-align: center;
+}
+
+/* region header */
+@media screen and (min-width: 750px) {
+    header {
+        justify-content: space-between;
+    font-size: 1.1em;
+    }
+
+    #header-left > :last-child, #header-center {
+        border-bottom-right-radius: 10px;
+    }
+
+    #header-center, #header-right > :last-child {
+        border-bottom-left-radius: 10px;
+    }
+}
+
+@media screen and (max-width: 749px) {
+    header > * {
+        flex-grow: 1;
+    }
+    header > *:not(:last-child) {
+        border-right: 1px solid #002152;
+    }
+    header > :last-child {
+        font-size: 0.9em;
+    }
+    #header-left > * {
+        justify-content: left !important;
+    }
+}
+
+header {
+    display: flex;
+    align-items: stretch;
+}
+
+header a, header span {
+    background-color: #ffb73d;
+    font-family: 'Open Sans', sans-serif;
+    color: #0045ab;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+header a:hover, header a:hover span {
+    background-color: #ffa100 !important;
+    color: #fff !important;
+    cursor: pointer !important;
+}
+
+
+#header-center {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+}
+
+#header-center span {
+    margin-left: 1em;
+    margin-right: 1em;
+    margin-bottom: 0.3em;
+}
+
+header img {
+    width: 5em;
+}
+
+#header-left, #header-right {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+}
+
+#header-right > *, #header-left > * {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: right;
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+#header-right span {
+    font-family: 'Roboto', sans-serif;
+    font-weight: 500;
+}
+
+/*
+header, header > div {
+    display: flex;
+    align-items: stretch;
+    justify-content: space-between;
+}
+
+
+#header-left > * {
+    display: flex;
+    align-items: center;
+}
+
+#header-left > a:first-child {
+    padding-right: 2em;
+}
+
+#header-left > a:first-child > img {
+}
+
+#header-left > :last-child:not(:first-child) {
+    border-bottom-right-radius: 10px;
+    border-left: 2px solid #00337f;
+    padding-left: 2em;
+    padding-right: 2em;
+}
+
+#header-right > span {
+}
+
+#header-right {
+    flex-direction: column;
+}
+
+#header-right > * {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    flex-grow: 1;
+    padding-left: 2em;
+    padding-right: 2em;
+}
+
+#header-right > :last-child {
+    border-top: 2px solid #00337f;
+    border-bottom-left-radius: 10px;
+}*/
+
+/* endregion */
+/* region modal */
+
 .modal-wrapper {
     display: none;
     position: fixed;
@@ -32,3 +211,5 @@
     text-decoration: none;
     cursor: pointer;
 }
+
+/* endregion */

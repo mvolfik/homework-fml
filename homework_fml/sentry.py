@@ -25,5 +25,5 @@ if dsn is not None:
         integrations=[FlaskIntegration(), SqlalchemyIntegration()],
         traces_sample_rate=float(os.environ.get("SENTRY_SAMPLE_RATE", "1.0")),
         before_send=add_user_info,
-        environment=os.environ.get("SENTRY_ENVIRON", "unknown")
+        environment=os.environ.get("SENTRY_ENVIRON", "unknown"),
     )

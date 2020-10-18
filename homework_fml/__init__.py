@@ -65,6 +65,10 @@ def create_app():
             "main.html" if current_user.is_authenticated else "welcome.html"
         )
 
+    @app.route("/service-menu")
+    def service_menu():
+        return "Not implemented yet"
+
     @app.route("/favicon.ico")
     def favicon():
         return redirect(url_for("static", filename="favicon.ico"))
