@@ -1,5 +1,7 @@
 from enum import Enum, auto
 
+from flask import jsonify
+
 
 class ErrorReason(str, Enum):
     def _generate_next_value_(name, start, count, last_values):
@@ -18,3 +20,10 @@ class ErrorReason(str, Enum):
     TOKEN_INVALID = auto()
     DUE_IN_PAST = auto()
     UNAUTHORIZED = auto()
+
+
+def fail(r: ErrorReason):
+    return jsonify({"ok": False, "reason": r})
+
+
+service_modules = {}

@@ -42,7 +42,7 @@ footer {
 @media screen and (min-width: 750px) {
     header {
         justify-content: space-between;
-    font-size: 1.1em;
+        font-size: 1.1em;
     }
 
     #header-left > :last-child, #header-center {
@@ -58,12 +58,15 @@ footer {
     header > * {
         flex-grow: 1;
     }
+
     header > *:not(:last-child) {
         border-right: 1px solid #002152;
     }
+
     header > :last-child {
         font-size: 0.9em;
     }
+
     #header-left > * {
         justify-content: left !important;
     }

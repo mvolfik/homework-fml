@@ -1,34 +1,16 @@
 import secrets
+from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
-from bson import CodecOptions
 from citext import CIText
 from flask_login import UserMixin
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from pymongo import MongoClient
-from pymongo.collection import Collection
-from pymongo.database import Database
+from sqlalchemy.dialects.postgresql import JSON
 
 db = SQLAlchemy(engine_options={"connect_args": {"options": "-c timezone=utc"}})
 migrate = Migrate()
-
-mongo: MongoClient = None
-mongodb: Database = None
-tasks: Collection = None
-
-
-def init_app(app):
-    global db, migrate, mongo, mongodb, tasks
-
-    db.init_app(app)
-    migrate.init_app(app, db)
-
-    mongo = MongoClient(app.config["MONGODB_URI"])
-    mongodb = mongo[app.config["MONGODB_DBNAME"]]
-    tasks = mongodb.get_collection(
-        "tasks", codec_options=CodecOptions(tz_aware=True, tzinfo=timezone.utc)
-    )
 
 
 class User(UserMixin, db.Model):
@@ -39,6 +21,8 @@ class User(UserMixin, db.Model):
     email_verification_token = db.Column(
         db.String, unique=True
     )  # simplest solution, once it's None, the user is verified
+
+    services_data = db.Column(JSON)
 
 
 class PasswordResetToken(db.Model):
@@ -53,3 +37,17 @@ class PasswordResetToken(db.Model):
     )
     user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
     user = db.relationship(User, backref="password_reset_tokens")
+
+
+@dataclass(init=False, eq=False)
+class Task(db.Model):
+    __tablename__ = "tasks"
+    id: int = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey(User.id), nullable=False)
+    user = db.relationship(User, backref="tasks")
+
+    due: datetime = db.Column(db.DateTime, nullable=False)
+    assigned_on: datetime = db.Column(db.DateTime, nullable=False)
+    service_name: str = db.Column(db.String, nullable=False)
+    full_text: str = db.Column(db.String, nullable=True)
+    data: Any = db.Column(JSON)

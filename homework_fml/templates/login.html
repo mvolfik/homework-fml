@@ -30,7 +30,7 @@
                 email: email_field.val()
             }, function (data) {
                 if (data.ok) {
-                    alert("Email was succesfully sent.")
+                    alert("Email was successfully sent.")
                 } else {
                     if (confirm("Something went wrong. Should we try again?")) {
                         resend_email();
@@ -60,7 +60,7 @@
                             break;
                         }
                         default: {
-                            alert("An error occured. Please try again.");
+                            alert("An error occurred. Please try again.");
                         }
                     }
                     send_button.prop("disabled", false);

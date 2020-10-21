@@ -1,16 +1,15 @@
 import secrets
-from datetime import datetime, timezone
+from datetime import datetime
 
-from bson import ObjectId
 from flask import Blueprint, flash, jsonify, render_template, request, url_for
 from flask.json import JSONEncoder
 from flask_login import LoginManager, current_user, login_user, logout_user
 from passlib.context import CryptContext
 from sqlalchemy.orm import joinedload
 
-from .db import PasswordResetToken, User, db, tasks
+from .db import PasswordResetToken, User, db
 from .email import send_mail
-from .utils import ErrorReason
+from .utils import ErrorReason, fail
 
 # region setup
 
@@ -35,9 +34,7 @@ def load_user(user_id):
 
 class CustomJSONEncoder(JSONEncoder):
     def default(self, o):
-        if isinstance(o, ObjectId):
-            return str(o)
-        elif isinstance(o, datetime):
+        if isinstance(o, datetime):
             return o.timestamp()
         else:
             return super().default(o)
@@ -48,10 +45,6 @@ bp.json_encoder = CustomJSONEncoder
 
 # endregion
 # region errors
-
-
-def fail(r: ErrorReason):
-    return jsonify({"ok": False, "reason": r})
 
 
 @bp.errorhandler(500)
@@ -215,33 +208,9 @@ def reset_password():
     return jsonify({"ok": True})
 
 
-@bp.route("/add-manual-task", methods=("POST",))
-def add_manual_task():
-    if not current_user.is_authenticated:
-        return fail(ErrorReason.UNAUTHORIZED)
-
-    data = request.form
-    due = datetime.fromtimestamp(int(data["due_timestamp"]), tz=timezone.utc)
-    if due <= datetime.now(tz=timezone.utc):
-        return fail(ErrorReason.DUE_IN_PAST)
-
-    tasks.insert_one(
-        {
-            "_provider": "manual",
-            "user_id": current_user.id,
-            "title": data["title"],
-            "due": due,
-            "description": data["description"],
-        }
-    )
-    return jsonify({"ok": True})
-
-
 @bp.route("/get-tasks", methods=("GET",))
 def get_tasks():
     if not current_user.is_authenticated:
         return fail(ErrorReason.UNAUTHORIZED)
 
-    return jsonify(
-        {"ok": True, "tasks": list(tasks.find({"user_id": current_user.id}))}
-    )
+    return jsonify({"ok": True, "tasks": current_user.tasks})

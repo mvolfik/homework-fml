@@ -1,12 +1,13 @@
 import os
+from importlib import import_module
 
-from flask import Flask, redirect, render_template, url_for
+from flask import Flask, flash, redirect, render_template, url_for
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
 
 
 def create_app():
-    from . import sentry
+    from . import sentry  # noqa
 
     app = Flask(__name__)
 
@@ -16,11 +17,13 @@ def create_app():
         {
             "SQLALCHEMY_DATABASE_URI": os.environ["DATABASE_URL"],
             "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-            "MONGODB_URI": os.environ["MONGODB_URI"],
-            "MONGODB_DBNAME": os.environ["MONGODB_DBNAME"],
             "SECRET_KEY": os.environ["SECRET_KEY"],
             "REMEMBER_COOKIE_SECURE": True,
             "WTF_CSRF_TIME_LIMIT": 86400,  # 24 hours
+            "SERVICES": [
+                # list of available services, can be changed to loading from env, which allows turning modules on and off
+                "manual",
+            ],
         }
     )
     CSRFProtect(app)
@@ -28,11 +31,10 @@ def create_app():
     # endregion
     # region db
 
-    from .db import init_app
+    from .db import db, migrate
 
-    # BEWARE: it is important that this is run before importing any blueprints
-    # that import mongo, mongodb, tasks
-    init_app(app)
+    db.init_app(app)
+    migrate.init_app(app, db)
 
     # endregion
     # region utils
@@ -40,6 +42,22 @@ def create_app():
     from .utils import ErrorReason
 
     app.add_template_global(ErrorReason)
+
+    # endregion
+    # region services
+
+    from .utils import service_modules
+
+    # BEWARE: setup magic that needs to be run before other imports
+    # (well, just modifying a dict, might not be an issue)
+    for service_name in app.config["SERVICES"]:
+        service_modules[service_name] = import_module(
+            ".services." + service_name, package=__name__
+        )
+
+    for module in service_modules.values():
+        if hasattr(module, "bp"):
+            app.register_blueprint(module.bp)
 
     # endregion
     # region user
@@ -67,7 +85,11 @@ def create_app():
 
     @app.route("/service-menu")
     def service_menu():
-        return "Not implemented yet"
+        if not current_user.is_authenticated:
+            flash("You need to login to view that page")
+            return redirect(url_for("user.login"))
+
+        return render_template("service_menu.html")
 
     @app.route("/favicon.ico")
     def favicon():
