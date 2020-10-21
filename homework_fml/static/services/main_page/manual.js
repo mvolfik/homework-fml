@@ -81,6 +81,7 @@ function show_add_manual_task() {
     prepare_manual_task_modal();
     manual_task_modal_cross.show();
     manual_task_modal_wrapper.show();
+    $("#manual-task-title").focus();
 }
 
 // endregion
