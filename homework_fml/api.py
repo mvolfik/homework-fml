@@ -1,14 +1,13 @@
 import secrets
 from datetime import datetime
 
-from flask import Blueprint, flash, jsonify, render_template, request, url_for
+from flask import Blueprint, current_app, flash, jsonify, request
 from flask.json import JSONEncoder
 from flask_login import LoginManager, current_user, login_user, logout_user
 from passlib.context import CryptContext
 from sqlalchemy.orm import joinedload
 
 from .db import PasswordResetToken, User, db
-from .email import send_mail
 from .utils import ErrorReason, fail
 
 # region setup
@@ -70,33 +69,14 @@ def register():
     elif db.session.query(User.query.filter_by(email=data["email"]).exists()).scalar():
         return fail(ErrorReason.EMAIL_ALREADY_REGISTERED)
     else:
-        email_verification_token = secrets.token_hex(64)
-        # noinspection PyArgumentList
-        db.session.add(
-            User(
-                email=data["email"],
-                hash=cryptctx.hash(data["pwd"]),
-                email_verification_token=email_verification_token,
-            )
+        u = User(
+            email=data["email"],
+            hash=cryptctx.hash(data["pwd"]),
+            email_verification_token=secrets.token_hex(64),
         )
+        db.session.add(u)
         db.session.commit()
-        token_url = url_for(
-            "user.verify_email", token=email_verification_token, _external=True
-        )
-        send_mail(
-            data["email"],
-            "Email verification",
-            "Hello,\n"
-            "Somebody (most likely you) just registered an account on homework-f.ml with this email address. In order to verify it, please open the following URL address in your browser:\n"
-            + token_url
-            + "\n"
-            "In case it wasn't you, you don't need to take any action. The account is unusable without a verified email address.\n\n"
-            "Best regards,\n"
-            "Matěj from Homework – Fully Merged List",
-            render_template(
-                "mail/verify_email.html", title="Email verification", token=token_url,
-            ),
-        )
+        current_app.task_queue.enqueue("worker.send_email_verification_mail", u.id)
         return jsonify({"ok": True})
 
 
@@ -123,30 +103,14 @@ def login():
 
 @bp.route("/resend-email", methods=("POST",))
 def resend_email():
-    u = User.query.filter_by(email=request.form["email"]).one_or_none()
-    if u is None or u.email_verification_token is None:
+    user = User.query.filter_by(email=request.form["email"]).one_or_none()
+    if user is None or user.email_verification_token is None:
         return fail(ErrorReason.EXCEPTION)
 
     email_verification_token = secrets.token_hex(64)
-    u.email_verification_token = email_verification_token
+    user.email_verification_token = email_verification_token
     db.session.commit()
-    token_url = url_for(
-        "user.verify_email", token=email_verification_token, _external=True
-    )
-    send_mail(
-        u.email,
-        "Email verification",
-        "Hello,\n"
-        "Somebody (most likely you) just registered an account on homework-f.ml with this email address. In order to verify it, please open the following URL address in your browser:\n\n"
-        + token_url
-        + "\n\n"
-        "In case it wasn't you, you don't need to take any action. The account is unusable without a verified email address.\n\n"
-        "Best regards,\n"
-        "Matěj from Homework – Fully Merged List",
-        render_template(
-            "mail/verify_email.html", title="Email verification", token=token_url,
-        ),
-    )
+    current_app.task_queue.enqueue("worker.send_email_verification_mail", user.id)
     return jsonify({"ok": True})
 
 
@@ -162,26 +126,9 @@ def request_password_reset():
     user = User.query.filter_by(email=request.form["email"]).one_or_none()
     if user is None:
         return jsonify({"ok": True})
-
-    token = secrets.token_hex(64)
-    token_url = url_for("user.reset_password", reset_token=token, _external=True)
-    send_mail(
-        user.email,
-        "Password reset",
-        "Hello,\n"
-        "Somebody (most likely you) just requested password reset for account on homework-f.ml with this email address. If it was you, click the following link to set your new password:\n\n"
-        + token_url
-        + "\n\n"
-        "In case it wasn't you, you don't need to take any action. Your password and account are safe.\n\n"
-        "Best regards,\n"
-        "Matěj from Homework – Fully Merged List",
-        render_template(
-            "mail/reset_password.html", title="Reset your password", token=token_url
-        ),
+    current_app.task_queue.enqueue(
+        "worker.create_and_send_password_reset_token", user.id
     )
-    token_object = PasswordResetToken(token=token)
-    user.password_reset_tokens.append(token_object)
-    db.session.commit()
     return jsonify({"ok": True})
 
 

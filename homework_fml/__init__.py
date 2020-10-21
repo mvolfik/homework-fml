@@ -1,9 +1,11 @@
 import os
 from importlib import import_module
 
+import rq
 from flask import Flask, flash, redirect, render_template, url_for
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
+from redis import Redis
 
 
 def create_app():
@@ -15,9 +17,13 @@ def create_app():
 
     app.config.from_mapping(
         {
+            "PREFERRED_URL_SCHEME": "https",
+            "REDIS_URL": os.environ["REDIS_URL"],
+            "REDIS_QUEUE_NAME": os.environ["REDIS_QUEUE_NAME"],
+            "SECRET_KEY": os.environ["SECRET_KEY"],
+            "SERVER_NAME": os.environ.get("SERVER_NAME", "homework-f.ml"),
             "SQLALCHEMY_DATABASE_URI": os.environ["DATABASE_URL"],
             "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-            "SECRET_KEY": os.environ["SECRET_KEY"],
             "REMEMBER_COOKIE_SECURE": True,
             "WTF_CSRF_TIME_LIMIT": 86400,  # 24 hours
             "SERVICES": [
@@ -37,6 +43,12 @@ def create_app():
     migrate.init_app(app, db)
 
     # endregion
+    # region redis
+
+    app.redis = Redis.from_url(app.config["REDIS_URL"])
+    app.task_queue = rq.Queue(app.config["REDIS_QUEUE_NAME"], connection=app.redis)
+
+    # endregion
     # region utils
 
     from .utils import ErrorReason
@@ -46,16 +58,14 @@ def create_app():
     # endregion
     # region services
 
-    from .utils import service_modules
+    app.service_modules = {}
 
-    # BEWARE: setup magic that needs to be run before other imports
-    # (well, just modifying a dict, might not be an issue)
     for service_name in app.config["SERVICES"]:
-        service_modules[service_name] = import_module(
+        app.service_modules[service_name] = import_module(
             ".services." + service_name, package=__name__
         )
 
-    for module in service_modules.values():
+    for module in app.service_modules.values():
         if hasattr(module, "bp"):
             app.register_blueprint(module.bp)
 

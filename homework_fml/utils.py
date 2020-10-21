@@ -24,6 +24,3 @@ class ErrorReason(str, Enum):
 
 def fail(r: ErrorReason):
     return jsonify({"ok": False, "reason": r})
-
-
-service_modules = {}

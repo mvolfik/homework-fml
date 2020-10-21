@@ -17,6 +17,7 @@ sqlalchemy-citext = "*"
 dkimpy = "*"
 flask-wtf = "*"
 sentry-sdk = { extras = ["flask"], version = "*" }
+rq = "*"
 
 [requires]
 python_version = "3.8"
