@@ -6,6 +6,11 @@ from flask_login import current_user
 from ..db import Task, db
 from ..utils import ErrorReason, fail
 
+
+def import_data(_):
+    pass  # no importing is actually done for manual tasks
+
+
 bp = Blueprint("services.manual", __name__, url_prefix="/services/manual")
 
 

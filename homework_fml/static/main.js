@@ -40,7 +40,30 @@ function load_tasks() {
     });
 }
 
+let import_button;
+let running_import_job_id = null;
+
+function request_import() {
+    import_button.prop("disabled", true);
+    $.post("/api/request-import", {csrf_token: csrf_token}, function (data) {
+            if (!data.ok) {
+                if (confirm("Something went wrong. Try again?")) {
+                    request_import();
+                } else {
+                    import_button.prop("disabled", false);
+                }
+            } else {
+                alert("Import is running");
+                running_import_job_id = data.job_id;
+                import_button.prop("disabled", false);
+            }
+        }
+    )
+}
+
 $(function () {
     main_list = $("#main-list");
+    import_button = $("#request-import");
+    import_button.on("click", request_import);
     load_tasks();
 });

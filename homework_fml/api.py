@@ -161,3 +161,12 @@ def get_tasks():
         return fail(ErrorReason.UNAUTHORIZED)
 
     return jsonify({"ok": True, "tasks": current_user.tasks})
+
+
+@bp.route("/request-import", methods=("POST",))
+def request_import():
+    if not current_user.is_authenticated:
+        return fail(ErrorReason.UNAUTHORIZED)
+
+    job = current_app.task_queue.enqueue("worker.import_all", current_user.id)
+    return jsonify({"ok": True, "job_id": job.id})
