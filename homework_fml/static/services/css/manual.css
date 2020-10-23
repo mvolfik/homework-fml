@@ -1,0 +1,31 @@
+#menuitem-manual {
+    max-width: 20em;
+}
+
+#manual-task-modal-wrapper form {
+    display: grid;
+    grid-template-areas:
+            "a b b b"
+            "c d e f"
+            "g h h h"
+            "i . . .";
+    max-width: 40em;
+    grid-gap: 0.2em 0.5em;
+}
+
+#manual-task-modal-wrapper form label {
+    justify-self: right;
+    align-self: center;
+}
+
+#manual-task-modal-wrapper form label[for=manual-task-due-time] {
+    justify-self: center;
+}
+
+#manual-task-title {
+    grid-area: b;
+}
+
+#manual-task-description {
+    grid-area: h;
+}

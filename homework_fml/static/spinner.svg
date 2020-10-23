@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     style="background-color: rgba(0, 0, 0, 0);"
+     width="100px" height="100px">preserveAspectRatio="xMidYMid"
+    <circle cx="50" cy="50" r="25" stroke-width="15" stroke="#fb9f00"
+            stroke-dasharray="40 40" fill="none"
+            stroke-linecap="round">
+        <animateTransform attributeName="transform" type="rotate"
+                          repeatCount="indefinite" dur="1s" keyTimes="0;1"
+                          values="0 50 50;360 50 50"/>
+    </circle>
+</svg>

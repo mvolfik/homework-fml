@@ -19,7 +19,7 @@ Each service must consist of the following:
   containing the following:
 
   - function `import_data`, which takes `user_id` as an argument, to import any new tasks
-    for the given user
+    for the given user, must return created task objects (but not add them to db)
 
   - optionally a blueprint named `bp`, if the service needs endpoints for e.g. the
     OAuth dance

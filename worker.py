@@ -65,5 +65,11 @@ def create_and_send_password_reset_token(user_id):
 
 
 def import_all(user_id):
-    for service_module in app.service_modules.values():
-        service_module.import_data(user_id)
+    tasks = [
+        task
+        for module in app.service_modules.values()
+        for task in module.import_data(user_id)
+    ]
+    db.session.add_all(tasks)
+    db.session.commit()
+    return [task.id for task in tasks]

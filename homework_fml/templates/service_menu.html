@@ -2,15 +2,18 @@
 {% block head %}
     {% for service_name in config["SERVICES"] %}
         <script type="text/javascript"
-                src="{{ url_for("static", filename="services/menu/{0}.js".format(service_name)) }}"></script>
+                src="{{ url_for("static", filename="services/menu/%s.js" % service_name) }}"></script>
+        <link rel="stylesheet" type="text/css"
+              href="{{ url_for("static", filename="services/css/%s.css" % service_name) }}"/>
     {% endfor %}
 {% endblock %}
 {% block body %}
     <p>Here you can add and manage the services to import your tasks from</p>
-    {% for service_name in config["SERVICES"] %}
-        <div class="service-management-box">
-            <span class="service-name">{{ service_name }}</span>
-            {% include "services/menu/{0}.html".format(service_name) %}
-        </div>
-    {% endfor %}
+    <div id="services-container">
+        {% for service_name in config["SERVICES"] %}
+            <div class="service-management-box" id="menuitem-{{ service_name }}">
+                {% include "services/menu/%s.html" % service_name %}
+            </div>
+        {% endfor %}
+    </div>
 {% endblock %}

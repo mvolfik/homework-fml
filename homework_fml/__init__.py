@@ -1,8 +1,10 @@
 import os
+from datetime import datetime
 from importlib import import_module
 
 import rq
 from flask import Flask, flash, redirect, render_template, url_for
+from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
 from redis import Redis
@@ -33,6 +35,19 @@ def create_app():
         }
     )
     CSRFProtect(app)
+
+    # endregion
+    # region json encoder
+
+    class CustomJSONEncoder(JSONEncoder):
+        def default(self, o):
+            if isinstance(o, datetime):
+                return o.timestamp()
+            else:
+                print(type(o), o)
+                return super().default(o)
+
+    app.json_encoder = CustomJSONEncoder
 
     # endregion
     # region db

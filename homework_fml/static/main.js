@@ -15,16 +15,20 @@ function fallback_renderer(task) {
 function render_tasks() {
     let result = $(document.createElement("div"));
     result.prop("id", "main-list");
-    for (const task of tasks) {
-        const renderer = service_task_renderers[task["service_name"]];
-        if (renderer !== undefined) {
-            result.append(renderer(task));
-        } else {
-            result.append(fallback_renderer(task));
+    if (tasks.length === 0) {
+        result.html("<span id='no-tasks'>No tasks to show&hellip;</span>");
+        $("#main-list").replaceWith(result)
+    } else {
+        for (const task of tasks) {
+            const renderer = service_task_renderers[task["service_name"]];
+            if (renderer !== undefined) {
+                result.append(renderer(task));
+            } else {
+                result.append(fallback_renderer(task));
+            }
         }
-
+        $("#main-list").replaceWith(result);
     }
-    $("#main-list").replaceWith(result);
 }
 
 function load_tasks() {
@@ -43,6 +47,25 @@ function load_tasks() {
 let import_button;
 let running_import_job_id = null;
 
+function do_poll() {
+    if (running_import_job_id !== null) {
+        $.post("/api/poll-job", {
+            csrf_token: csrf_token,
+            job_id: running_import_job_id,
+            get_tasks_from_ids: true
+        }, function (data) {
+            if (data.ok && data.finished) {
+                tasks.push(...data.result);
+                render_tasks();
+                import_button.prop("disabled", false);
+                running_import_job_id = null;
+            } else {
+                setTimeout(do_poll, 500);
+            }
+        });
+    }
+}
+
 function request_import() {
     import_button.prop("disabled", true);
     $.post("/api/request-import", {csrf_token: csrf_token}, function (data) {
@@ -53,9 +76,8 @@ function request_import() {
                     import_button.prop("disabled", false);
                 }
             } else {
-                alert("Import is running");
                 running_import_job_id = data.job_id;
-                import_button.prop("disabled", false);
+                setTimeout(do_poll, 500);
             }
         }
     )

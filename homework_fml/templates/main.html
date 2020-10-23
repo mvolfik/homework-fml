@@ -4,7 +4,9 @@
             src="{{ url_for("static", filename="main.js") }}"></script>
     {% for service_name in config["SERVICES"] %}
         <script type="text/javascript"
-                src="{{ url_for("static", filename="services/main_page/{0}.js".format(service_name)) }}"></script>
+                src="{{ url_for("static", filename="services/main_page/%s.js" % service_name) }}"></script>
+        <link rel="stylesheet" type="text/css"
+              href="{{ url_for("static", filename="services/css/%s.css" % service_name) }}"/>
     {% endfor %}
 {% endblock %}
 {% block body %}

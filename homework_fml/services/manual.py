@@ -8,7 +8,7 @@ from ..utils import ErrorReason, fail
 
 
 def import_data(_):
-    pass  # no importing is actually done for manual tasks
+    return []  # no importing is actually done for manual tasks
 
 
 bp = Blueprint("services.manual", __name__, url_prefix="/services/manual")

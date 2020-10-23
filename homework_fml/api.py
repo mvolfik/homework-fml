@@ -2,12 +2,12 @@ import secrets
 from datetime import datetime
 
 from flask import Blueprint, current_app, flash, jsonify, request
-from flask.json import JSONEncoder
 from flask_login import LoginManager, current_user, login_user, logout_user
 from passlib.context import CryptContext
+from rq.job import Job
 from sqlalchemy.orm import joinedload
 
-from .db import PasswordResetToken, User, db
+from .db import PasswordResetToken, Task, User, db
 from .utils import ErrorReason, fail
 
 # region setup
@@ -25,21 +25,6 @@ login_manager.login_view = "user.login"
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(user_id)
-
-
-# endregion
-# region json encoder
-
-
-class CustomJSONEncoder(JSONEncoder):
-    def default(self, o):
-        if isinstance(o, datetime):
-            return o.timestamp()
-        else:
-            return super().default(o)
-
-
-bp.json_encoder = CustomJSONEncoder
 
 
 # endregion
@@ -170,3 +155,15 @@ def request_import():
 
     job = current_app.task_queue.enqueue("worker.import_all", current_user.id)
     return jsonify({"ok": True, "job_id": job.id})
+
+
+@bp.route("/poll-job", methods=("POST",))
+def poll_job():
+    j: Job = current_app.task_queue.fetch_job(request.form["job_id"])
+    if j.is_finished:
+        result = j.result
+        if request.form.get("get_tasks_from_ids", False):
+            result = Task.query.filter(Task.id.in_(result)).all()
+        return jsonify({"ok": True, "finished": True, "result": result})
+    else:
+        return jsonify({"ok": True, "finished": False})

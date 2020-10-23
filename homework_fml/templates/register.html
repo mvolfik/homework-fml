@@ -1,6 +1,6 @@
 {% extends "_base.html" %}
 {% block body %}
-    <form action="{{ url_for("api.register") }}" method="post">
+    <form>
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <p>
             <label for="email">Email:</label>

@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="500" height="500">
     <style>
         line {
-        stroke: #0045ab;
+        stroke: #0b49a6;
         stroke-width: 15;
         }
         rect {
-        fill: #0045ab;
+        fill: #0b49a6;
         }
         path {
         fill: #22cc;
