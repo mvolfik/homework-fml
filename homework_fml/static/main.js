@@ -55,10 +55,22 @@ function do_poll() {
             get_tasks_from_ids: true
         }, function (data) {
             if (data.ok && data.finished) {
-                tasks.push(...data.result);
-                render_tasks();
                 import_button.prop("disabled", false);
                 running_import_job_id = null;
+
+                if (data.result.length > 0) {
+                    tasks.push(...data.result);
+                    render_tasks();
+                    alert(`${data.result.length} new tasks were imported`);
+                } else {
+                    alert("No new tasks found");
+                }
+            } else if (data.ok && data.failed) {
+                import_button.prop("disabled", false);
+                running_import_job_id = null;
+                if (confirm("The import job failed. Try again?")) {
+                    request_import();
+                }
             } else {
                 setTimeout(do_poll, 500);
             }

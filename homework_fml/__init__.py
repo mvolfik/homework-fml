@@ -24,6 +24,7 @@ def create_app():
             "REDIS_QUEUE_NAME": os.environ["REDIS_QUEUE_NAME"],
             "SECRET_KEY": os.environ["SECRET_KEY"],
             "SERVER_NAME": os.environ.get("SERVER_NAME", "homework-f.ml"),
+            "SESSION_COOKIE_SECURE": True,
             "SQLALCHEMY_DATABASE_URI": os.environ["DATABASE_URL"],
             "SQLALCHEMY_TRACK_MODIFICATIONS": False,
             "REMEMBER_COOKIE_SECURE": True,
@@ -44,7 +45,6 @@ def create_app():
             if isinstance(o, datetime):
                 return o.timestamp()
             else:
-                print(type(o), o)
                 return super().default(o)
 
     app.json_encoder = CustomJSONEncoder

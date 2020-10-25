@@ -141,7 +141,7 @@ $(function () {
 
     $("body").append('<div class="modal-wrapper" id="manual-task-modal-wrapper"><div>' +
         '<span class="modal-close" id="manual-task-modal-close">&times;</span>' +
-        '<form>' +
+        '<form method="post">' +
         '<label for="manual-task-title">Title</label><input type="text" name="title" id="manual-task-title"/>' +
         '<label for="manual-task-due-date">Due</label><input type="date" name="due-date" id="manual-task-due-date" required="required"/><label for="manual-task-due-time">at</label><input type="time" name="due-time" id="manual-task-due-time" required="required" value="23:59"/>' +
         '<label for="manual-task-description">Description</label><textarea name="description" id="manual-task-description"></textarea>' +
@@ -172,7 +172,7 @@ $(function () {
     });
 
 
-    $("main").prepend('<button onclick="show_add_manual_task()">Add task</button>');
+    $("#main-list").before('<button onclick="show_add_manual_task()">Add task</button>');
 });
 
 // endregion

@@ -162,8 +162,13 @@ def poll_job():
     j: Job = current_app.task_queue.fetch_job(request.form["job_id"])
     if j.is_finished:
         result = j.result
-        if request.form.get("get_tasks_from_ids", False):
+        if result and request.form.get(
+            "get_tasks_from_ids", False
+        ):  # potential security issue: if job_id is leaked, you can see new tasks of other user
             result = Task.query.filter(Task.id.in_(result)).all()
+        j.delete()
         return jsonify({"ok": True, "finished": True, "result": result})
+    elif j.is_failed:
+        return jsonify({"ok": True, "failed": True})
     else:
         return jsonify({"ok": True, "finished": False})
