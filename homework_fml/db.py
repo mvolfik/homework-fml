@@ -22,7 +22,7 @@ class User(UserMixin, db.Model):
         db.String, unique=True
     )  # simplest solution, once it's None, the user is verified
 
-    services_data = db.Column(JSON)
+    services_data = db.Column(JSON, nullable=False, default=dict)
 
 
 class PasswordResetToken(db.Model):
