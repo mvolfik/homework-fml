@@ -1,0 +1,42 @@
+<img src="https://bakalari.cz/images/bakalari-logo.svg" alt="Bakaláři"
+     id="bakalari-logo"/>
+<span id="bakalari-name"></span>
+<div id="bakalari-setup">
+    <p>
+        You can add the Bakaláři school system as a service. That means that your
+        homework
+        (and optionally Komens messages) from there will be imported into this app.
+    </p>
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <label for="bakalari-url">URL of the Bakaláři server</label>
+        <input type="url" id="bakalari-url" placeholder="https://bakalari.skola.cz"
+               required="required" name="url"/>
+        <label for="bakalari-username">Username</label>
+        <input type="text" id="bakalari-username" placeholder="JanNovak"
+               required="required" name="username"/>
+        <label for="bakalari-pwd">Password</label>
+        <input id="bakalari-pwd" type="password" placeholder="********"
+               required="required" name="password"/>
+        <button id="bakalari-send" type="submit">Register service</button>
+    </form>
+</div>
+<div id="bakalari-settings">
+    <form method="post">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <fieldset>
+            <legend>Import items from:</legend>
+            <input type="checkbox" name="homework" id="bakalari-homework"/>
+            <label for="bakalari-homework">Úkoly</label>
+            <input type="checkbox" name="komens" id="bakalari-komens"/>
+            <label for="bakalari-komens">Komens</label>
+            <input type="checkbox" name="noticeboard" id="bakalari-noticeboard"/>
+            <label for="bakalari-noticeboard">Nástěnka</label>
+        </fieldset>
+        <button id="bakalari-delete" type="button">Delete service</button>
+        <button id="bakalari-save-settings" type="submit">Save</button>
+    </form>
+</div>
+<script type="text/javascript">
+    setup_bakalari_view();
+</script>

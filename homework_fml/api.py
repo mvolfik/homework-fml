@@ -61,7 +61,9 @@ def register():
         )
         db.session.add(u)
         db.session.commit()
-        current_app.task_queue.enqueue("worker.send_email_verification_mail", u.id)
+        current_app.task_queue.enqueue(
+            "worker.send_email_verification_mail", user_id=u.id
+        )
         return jsonify({"ok": True})
 
 
@@ -95,7 +97,9 @@ def resend_email():
     email_verification_token = secrets.token_hex(64)
     user.email_verification_token = email_verification_token
     db.session.commit()
-    current_app.task_queue.enqueue("worker.send_email_verification_mail", user.id)
+    current_app.task_queue.enqueue(
+        "worker.send_email_verification_mail", user_id=user.id
+    )
     return jsonify({"ok": True})
 
 
@@ -112,7 +116,7 @@ def request_password_reset():
     if user is None:
         return jsonify({"ok": True})
     current_app.task_queue.enqueue(
-        "worker.create_and_send_password_reset_token", user.id
+        "worker.create_and_send_password_reset_token", user_id=user.id
     )
     return jsonify({"ok": True})
 
@@ -153,7 +157,7 @@ def request_import():
     if not current_user.is_authenticated:
         return fail(ErrorReason.UNAUTHORIZED)
 
-    job = current_app.task_queue.enqueue("worker.import_all", current_user.id)
+    job = current_app.task_queue.enqueue("worker.import_all", user_id=current_user.id)
     return jsonify({"ok": True, "job_id": job.id})
 
 

@@ -3,13 +3,19 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+import flask
 from citext import CIText
 from flask_login import UserMixin
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.dialects.postgresql import JSON
 
-db = SQLAlchemy(engine_options={"connect_args": {"options": "-c timezone=utc"}})
+db = SQLAlchemy(
+    engine_options={
+        "connect_args": {"options": "-c timezone=utc"},
+        "json_serializer": flask.json.dumps,
+    }
+)
 migrate = Migrate()
 
 

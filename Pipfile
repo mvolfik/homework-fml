@@ -18,6 +18,7 @@ dkimpy = "*"
 flask-wtf = "*"
 sentry-sdk = { extras = ["flask"], version = "*" }
 rq = "*"
+bakapi = "*"
 
 [requires]
 python_version = "3.8"

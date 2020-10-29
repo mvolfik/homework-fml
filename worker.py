@@ -1,16 +1,26 @@
 import logging
 import secrets
+from functools import wraps
 
-from flask import render_template, url_for
+from flask import current_app, render_template, url_for
+from sentry_sdk import set_user
+from sqlalchemy.orm import joinedload
 
-from homework_fml import create_app
-from homework_fml.db import PasswordResetToken, User, db
+from homework_fml.db import PasswordResetToken, Task, User, db
 from homework_fml.email import send_mail
 
-app = create_app()
-app.app_context().push()
+
+def job_with_user_id(f):
+    @wraps(f)
+    def wrapper(*args, user_id, **kwargs):
+        u = User.query.get(user_id)
+        set_user({"email": u.email, "id": u.id})
+        f(*args, user_id=user_id, **kwargs)
+
+    return wrapper
 
 
+@job_with_user_id
 def send_email_verification_mail(user_id):
     user = User.query.get(user_id)
     if user is None:
@@ -36,6 +46,7 @@ def send_email_verification_mail(user_id):
     )
 
 
+@job_with_user_id
 def create_and_send_password_reset_token(user_id):
     user = User.query.get(user_id)
     if user is None:
@@ -64,12 +75,29 @@ def create_and_send_password_reset_token(user_id):
     )
 
 
+@job_with_user_id
 def import_all(user_id):
-    tasks = [
-        task
-        for module in app.service_modules.values()
-        for task in module.import_data(user_id)
-    ]
-    db.session.add_all(tasks)
-    db.session.commit()
-    return [task.id for task in tasks]
+    user = User.query.options(joinedload(User.tasks)).get(user_id)
+    if user is None:
+        logging.error("Trying to import tasks for nonexistent user_id")
+
+    tasks = []
+    for service_name, service in current_app.service_modules.items():
+        for task in service.import_data(user):
+            task_dict = {
+                col.name: getattr(task, col.name)
+                for col in Task.__table__.columns
+                if getattr(task, col.name) is not None
+            }
+            task_dict["service_name"] = service_name
+            task_dict["user_id"] = user_id
+            tasks.append(task_dict)
+    if tasks:
+        query = Task.__table__.insert().values(tasks).returning(Task.id)
+        results = db.session.execute(query)
+        task_ids = [result[0] for result in results.fetchall()]
+    else:
+        task_ids = []
+
+    db.session.commit()  # in case services store some data (e.g. new refresh token)
+    return task_ids

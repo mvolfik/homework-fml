@@ -1,0 +1,64 @@
+#bakalari-logo {
+    height: 2em;
+}
+
+#bakalari-setup form {
+    font-size: 0.8em;
+    display: grid;
+    grid-template-columns: auto auto;
+    align-items: center;
+    grid-gap: 0.1em 0.5em;
+    text-align: right;
+}
+
+#bakalari-setup input {
+    font-size: inherit;
+}
+
+#bakalari-setup p {
+    max-width: 25em;
+}
+
+#bakalari-send {
+    grid-column: 2;
+}
+
+#bakalari-settings form {
+    grid-gap: 0.5em 1em;
+    display: grid;
+    grid-template-areas: "fieldset fieldset" "delete save";
+}
+
+#bakalari-settings {
+    min-width: 15em;
+}
+
+#bakalari-settings fieldset {
+    grid-area: fieldset;
+    display: grid;
+    grid-template-columns: auto 1fr;
+}
+
+#bakalari-delete {
+    background-color: rgb(var(--beware));
+}
+
+#menuitem-bakalari[data-display="setup"] > #bakalari-settings {
+    display: none;
+}
+
+#menuitem-bakalari[data-display="settings"] > #bakalari-setup {
+    display: none;
+}
+
+#bakalari-name {
+    font-family: Roboto, sans-serif;
+    font-weight: 500;
+    margin-left: 1.5em;
+    vertical-align: top;
+}
+
+label.disabled {
+    opacity: 0.5;
+    text-decoration: line-through;
+}

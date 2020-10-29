@@ -3,18 +3,29 @@ from datetime import datetime
 from importlib import import_module
 
 import rq
-from flask import Flask, flash, redirect, render_template, url_for
+from flask import Flask, flash, redirect, render_template, request, url_for
 from flask.json import JSONEncoder
 from flask_login import current_user
 from flask_wtf.csrf import CSRFProtect
 from redis import Redis
+from sentry_sdk import set_user
 
 
 def create_app():
-    from . import sentry  # noqa
-
     app = Flask(__name__)
 
+    # region sentry
+
+    from . import sentry  # noqa
+
+    @app.before_request
+    def inform_sentry():
+        if current_user.is_authenticated:
+            set_user({"email": current_user.email, "id": current_user.id})
+        else:
+            set_user({"ip_address": request.remote_addr})
+
+    # endregion
     # region config
 
     app.config.from_mapping(
@@ -32,6 +43,7 @@ def create_app():
             "SERVICES": [
                 # list of available services, can be changed to loading from env, which allows turning modules on and off
                 "manual",
+                "bakalari",
             ],
         }
     )
@@ -114,7 +126,14 @@ def create_app():
             flash("You need to login to view that page")
             return redirect(url_for("user.login"))
 
-        return render_template("service_menu.html")
+        return render_template(
+            "service_menu.html",
+            services_user_data={
+                k: v["_frontend"]
+                for (k, v) in current_user.services_data.items()
+                if "_frontend" in v
+            },
+        )
 
     @app.route("/favicon.ico")
     def favicon():

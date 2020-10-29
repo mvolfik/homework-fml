@@ -15,6 +15,8 @@ Each service must consist of the following:
 - a javascript file `static/services/menu/{service_name}.js`, containing anything needed
   to support the service menu html
 
+- a css file `static/services/css/{service_name}.css` for the menu page
+
 - a python module `homework_fml.services.{service_name}` (`.py` file in this folder),
   containing the following:
 
@@ -25,7 +27,8 @@ Each service must consist of the following:
     OAuth dance
 
 All data a service needs about a user (auth tokens etc.) should be saved in
-`User.services_data[{service_name}]`
+`User.services_data[{service_name}]`. Data under the key `_frontend` is available on
+the menu page
 
 All the tasks are stored in the tasks table, and have some required values (see the file
 db.py; one of them is `service_name`, which must be exactly `{service_name}`), anything

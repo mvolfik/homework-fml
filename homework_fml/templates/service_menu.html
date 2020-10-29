@@ -1,5 +1,8 @@
 {% extends "_base.html" %}
 {% block head %}
+    <script type="text/javascript">
+        const services_user_data = {{ services_user_data | tojson }};
+    </script>
     {% for service_name in config["SERVICES"] %}
         <script type="text/javascript"
                 src="{{ url_for("static", filename="services/menu/%s.js" % service_name) }}"></script>

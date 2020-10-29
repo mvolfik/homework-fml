@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import Union
 
 from flask import jsonify
 
@@ -20,7 +21,14 @@ class ErrorReason(str, Enum):
     TOKEN_INVALID = auto()
     DUE_IN_PAST = auto()
     UNAUTHORIZED = auto()
+    SPECIFIED = (
+        auto()
+    )  # use when the error is described in the key error_info (to be shown to the user)
 
 
-def fail(r: ErrorReason):
-    return jsonify({"ok": False, "reason": r})
+def fail(reason: Union[ErrorReason, str]):
+    if type(reason) == str:
+        return jsonify(
+            {"ok": False, "reason": ErrorReason.SPECIFIED, "error_info": reason}
+        )
+    return jsonify({"ok": False, "reason": reason})
