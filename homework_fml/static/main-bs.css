@@ -1,0 +1,79 @@
+:root {
+    /* palette: https://paletton.com/#uid=23F0u0kDEvycgMPoKCZIPm4TIaL */
+    --primary-light: #8dacd9;
+    --primary-semilight: #386ebe;
+    --primary: #0b49a6 !important;
+    --primary-semidark: #063274;
+    --primary-dark: #011839;
+
+    --secondary-light: #ffdb9d;
+    --secondary-semilight: #ffb63a;
+    --secondary: #fb9f00 !important;
+    --secondary-semidark: #b06f00;
+    --secondary-dark: #563600;
+}
+
+/* region navbar */
+
+nav {
+    background-color: var(--primary-semidark);
+}
+
+.navbar-brand:hover {
+    opacity: 0.8;
+}
+
+.navbar-brand span {
+    font-size: 0.85em;
+}
+
+.navbar-brand svg {
+    width: 2em;
+    height: 2em;
+    margin-right: 0.5em;
+    background-color: var(--secondary-semilight);
+    border-bottom-left-radius: 3px;
+    border-bottom-right-radius: 3px;
+}
+
+.navbar-brand svg line {
+    stroke: var(--primary);
+    stroke-width: 15;
+}
+
+.navbar-brand svg rect {
+    fill: var(--primary);
+}
+
+.navbar-brand svg path {
+    stroke: #000;
+    stroke-width: 5;
+}
+
+.navbar-brand svg .bad {
+    fill: var(--danger);
+}
+
+.navbar-brand svg .good {
+    fill: var(--success);
+}
+
+/* endregion */
+
+footer {
+    border-top: 1px solid #ccc;
+    padding: 0.5em;
+    font-size: 0.95em;
+    color: rgb(var(--secondary-dark));
+    text-align: center;
+}
+
+.narrow {
+    max-width: 30rem;
+}
+
+.featurette-heading {
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: -.05rem;
+}

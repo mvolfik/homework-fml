@@ -12,7 +12,6 @@ from sqlalchemy.dialects.postgresql import JSON
 
 db = SQLAlchemy(
     engine_options={
-        "connect_args": {"options": "-c timezone=utc"},
         "json_serializer": flask.json.dumps,
     }
 )
